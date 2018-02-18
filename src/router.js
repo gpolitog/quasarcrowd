@@ -25,9 +25,23 @@ export default new VueRouter({
   scrollBehavior: () => ({ y: 0 }),
 
   routes: [
-    { path: '/', component: load('Hello') },
+    // { path: '/', component: load('Hello') },
 
-    // Always leave this last one
-    { path: '*', component: load('Error404') } // Not found
+    // // Always leave this last one
+    // { path: '*', component: load('Error404') } // Not found
+    { path: '/login', component: load('Login') },
+    { path: '/register', component: load('Register') },
+    {
+      path: '/',
+      component: load('Dashboard'),
+      meta: { requiresAuth: true },
+      children: [
+        { path: 'users', component: load('Users') },
+        { path: 'createReport', component: load('CreateReport') },
+        { path: 'municipalities', component: load('Municipalities') },
+        { path: 'categories', component: load('Categories') },
+        { path: '', component: load('Map') }
+      ]
+    }
   ]
 })

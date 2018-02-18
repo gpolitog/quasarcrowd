@@ -1,6 +1,21 @@
 <template>
   <section>
-    <div id="map" class="large"></div>
+    <!-- <div id="map" class="large"></div> -->
+      <gmap-map
+    :center="map.center"
+    :zoom="map.zoom"
+    style="width: 500px; height: 300px"
+  >
+    <gmap-marker
+      :key="index"
+      v-for="(m, index) in markers"
+      :position="m.position"
+      :clickable="true"
+      :draggable="false"
+      :icon="m.icon"
+      @click="map.center=m.position"
+    ></gmap-marker>
+  </gmap-map>
     <!-- use the modal component, pass in the prop -->
     <transition name="modal">
       <div class="modal-mask" v-if="showModal">
@@ -66,11 +81,16 @@ export default {
   data: function () {
     return {
       showModal: false,
-      map: {},
+      map: {
+        center: {
+          lat: 0,
+          lng: 0
+        },
+        zoom: 14,
+        bounds: {}
+      },
       markers: [],
       reports: [],
-      lat: '',
-      lng: '',
       reportToEdit: {},
       categories: [],
       markerToEdit: {}
@@ -171,10 +191,10 @@ export default {
     gotData (data) {
       let vm = this
       vm.reports = []
-      vm.markers.forEach(marker => {
-        marker.setMap(null)
-        marker = null
-      })
+      // vm.markers.forEach(marker => {
+      //   marker.setMap(null)
+      //   marker = null
+      // })
       vm.markers = []
       let reportsTemp = []
       var obj = data.val()
@@ -198,76 +218,66 @@ export default {
         let icon
         switch (report.status) {
           case 'pending':
-            icon = 'src/assets/img/red-dot.png'
+            icon = '/statics/img/red-dot.png'
             break
           case 'work in progress':
-            icon = 'src/assets/img/yellow-dot.png'
+            icon = '/statics/img/yellow-dot.png'
             break
           case 'closed':
-            icon = 'src/assets/img/green-dot.png'
+            icon = '/statics/img/green-dot.png'
             break
           default:
-            icon = 'src/assets/img/red-dot.png'
+            icon = '/statics/img/red-dot.png'
         }
 
         if (report.status === 'closed' && vm.user.role === 'citizen') {
         } else {
-          let marker = new google.maps.Marker({
-            position: new google.maps.LatLng(report.lat, report.lng),
+          vm.markers.push({
+            position: {lat: report.lat, lng: report.lng},
             icon: icon,
-            map: vm.map,
             report: Object.assign({}, report)
           })
-          let infowindow = new google.maps.InfoWindow({
-            content: `  
-           <b>Διεύθυνση :</b> ${marker.report.roadName} </br>
-           <b>Κατηγορία :</b> ${marker.report.category} </br>
-           <b>Περιγραφή :</b> ${marker.report.desc} </br>
-           <b>Ημερομηνία :</b> ${marker.report.date} </br>
-           <b>Ώρα :</b> ${marker.report.time} </br>
-           <b>status : </b>${marker.report.status}
-           `
-          })
-          marker.addListener('click', function (e) {
-            if (vm.user.role === 'citizen') return
-            vm.reportToEdit = this.report
-            vm.markerToEdit = this
-            vm.showModal = true
-          })
-          marker.addListener('mouseover', function (e) {
-            infowindow.open(vm.map, this)
-          })
-          marker.addListener('mouseout', function (e) {
-            infowindow.close()
-          })
-          vm.markers.push(marker)
+          // let infowindow = new google.maps.InfoWindow({
+          //   content: `
+          //  <b>Διεύθυνση :</b> ${marker.report.roadName} </br>
+          //  <b>Κατηγορία :</b> ${marker.report.category} </br>
+          //  <b>Περιγραφή :</b> ${marker.report.desc} </br>
+          //  <b>Ημερομηνία :</b> ${marker.report.date} </br>
+          //  <b>Ώρα :</b> ${marker.report.time} </br>
+          //  <b>status : </b>${marker.report.status}
+          //  `
+          // })
+          // marker.addListener('click', function (e) {
+          //   if (vm.user.role === 'citizen') return
+          //   vm.reportToEdit = this.report
+          //   vm.markerToEdit = this
+          //   vm.showModal = true
+          // })
+          // marker.addListener('mouseover', function (e) {
+          //   infowindow.open(vm.map, this)
+          // })
+          // marker.addListener('mouseout', function (e) {
+          //   infowindow.close()
+          // })
+          // vm.markers.push(marker)
         }
       })
-      if (vm.user.role === 'admin') {
-        var bounds = new google.maps.LatLngBounds()
-        for (var i = 0; i < vm.markers.length; i++) {
-          bounds.extend(vm.markers[i].getPosition())
-        }
-        vm.map.fitBounds(bounds)
-      }
+      // if (vm.user.role === 'admin') {
+      //   var bounds = new google.maps.LatLngBounds()
+      //   for (var i = 0; i < vm.markers.length; i++) {
+      //     bounds.extend(vm.markers[i].getPosition())
+      //   }
+      //   vm.map.bounds = bounds
+      // }
     },
     errData () {},
     fetchMunicipality (data) {
       let vm = this
       var obj = data.val()
       for (let key in obj) {
-        vm.lat = obj[key].lat
-        vm.lng = obj[key].lng
+        vm.map.center.lat = obj[key].lat
+        vm.map.center.lng = obj[key].lng
       }
-      this.initMap()
-    },
-    initMap: function () {
-      let vm = this
-      var center = { lat: vm.lat, lng: vm.lng }
-      this.map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 14,
-        center: center
-      })
     }
   }
 }

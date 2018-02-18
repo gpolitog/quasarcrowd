@@ -1,7 +1,7 @@
 <template>
   <!-- Don't drop "q-app" class -->
   <div id="q-app">
-    <router-view />
+    <router-view :firebase="firebase" :GoogleMapsKey="GoogleMapsKey"></router-view>
   </div>
 </template>
 
@@ -9,7 +9,14 @@
 /*
  * Root component
  */
-export default {}
+export default {
+  data: function () {
+    return {
+      firebase: this.$root.$data.firebase,
+      GoogleMapsKey: this.$root.$data.GoogleMapsKey
+    }
+  }
+}
 </script>
 
 <style></style>
